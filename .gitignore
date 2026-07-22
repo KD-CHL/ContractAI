@@ -28,3 +28,4 @@ uploads/
 # Frontend
 node_modules/
 frontend/dist/
+src/contract_guard/web-legacy/
