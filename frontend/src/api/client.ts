@@ -26,8 +26,10 @@ export function clearTokens(): void {
 
 // ─── Axios instance ──────────────────────────────────────────────────────────
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
+
 const client = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -102,7 +104,7 @@ client.interceptors.response.use(
     isRefreshing = true
 
     try {
-      const { data } = await axios.post('/api/v1/auth/refresh', {
+      const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
         refresh_token: refreshToken,
       })
 

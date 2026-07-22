@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: contractai-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /live
+    envVars:
+      - key: APP_MODE
+        value: offline
+      - key: DATABASE_URL
+        value: sqlite:///./data/contractguard.db
+      - key: CONTRACT_GUARD_AUTH_REQUIRED
+        value: "true"
+      - key: CONTRACT_GUARD_REGISTRATION_ENABLED
+        value: "true"
+      - key: CONTRACT_GUARD_AUTH_COOKIE_SECURE
+        value: "true"
+      - key: CONTRACT_GUARD_CORS_ORIGINS
+        value: https://contractai-ruddy.vercel.app
+      - key: LOG_LEVEL
+        value: info
+      - key: PORT
+        value: "8000"
+    disk:
+      name: contractai-data
+      mountPath: /app/data
+      sizeGB: 1
