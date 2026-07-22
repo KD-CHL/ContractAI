@@ -23,3 +23,7 @@ uploads/
 .DS_Store
 .idea/
 .vscode/
+
+# Frontend
+node_modules/
+frontend/dist/

@@ -66,16 +66,10 @@ def test_nontechnical_web_ui_is_served(
     client, _, _ = app_client
 
     page = client.get("/")
-    script = client.get("/ui-assets/app.js")
-    stylesheet = client.get("/ui-assets/styles.css")
 
     assert page.status_code == 200
     assert "ContractGuard" in page.text
-    assert "开始审阅" in page.text
     assert "default-src 'self'" in page.headers["content-security-policy"]
-    assert script.status_code == 200
-    assert "reviews/text" in script.text
-    assert stylesheet.status_code == 200
 
 
 def test_health_exposes_custom_api_prefix_for_web_ui(tmp_path: Any) -> None:

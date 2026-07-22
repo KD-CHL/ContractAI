@@ -1,5 +1,6 @@
-.PHONY: install install-prod dev test lint type-check format format-check js-check check build \
-	db-status db-upgrade db-backup db-restore docker-build docker-up docker-down
+.PHONY: install install-prod dev test lint type-check format format-check frontend-check check build \
+	db-status db-upgrade db-backup db-restore docker-build docker-up docker-down \
+	frontend-install frontend-dev frontend-build frontend-deploy
 
 PYTHON ?= python3.12
 VENV ?= .venv
@@ -39,10 +40,10 @@ format:
 	$(RUFF) format src tests
 	$(RUFF) check --fix src tests
 
-js-check:
-	node --check src/contract_guard/web/app.js
+frontend-check:
+	cd frontend && npx vue-tsc --noEmit
 
-check: lint type-check format-check test js-check
+check: lint type-check format-check test frontend-check
 
 build:
 	$(PIP) wheel --no-build-isolation --no-deps --wheel-dir dist .
@@ -69,3 +70,17 @@ docker-up:
 
 docker-down:
 	docker compose down
+
+frontend-install:
+	cd frontend && npm install --silent
+
+frontend-dev:
+	cd frontend && npm run dev
+
+frontend-build:
+	cd frontend && npm run build
+
+frontend-deploy: frontend-build
+	rm -rf src/contract_guard/web
+	mkdir -p src/contract_guard/web
+	cp -r frontend/dist/* src/contract_guard/web/

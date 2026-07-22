@@ -1,4 +1,12 @@
 # syntax=docker/dockerfile:1.7
+FROM node:20-slim AS frontend
+
+WORKDIR /frontend
+COPY frontend/package*.json ./
+RUN npm ci --silent
+COPY frontend/ ./
+RUN npm run build
+
 FROM python:3.12-slim AS builder
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -7,6 +15,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
 WORKDIR /build
 COPY pyproject.toml README.md ./
 COPY src ./src
+COPY --from=frontend /frontend/dist ./src/contract_guard/web
 
 # Use INSTALL_TARGET=".[prod]" for an image containing optional production clients.
 ARG INSTALL_TARGET=.

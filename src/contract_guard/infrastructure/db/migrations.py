@@ -791,6 +791,105 @@ def _upgrade_v3(connection: sqlite3.Connection) -> None:
     _validate_v3(connection)
 
 
+_V4_TABLE_STATEMENTS: Final[tuple[str, ...]] = (
+    """
+    CREATE TABLE IF NOT EXISTS contract_templates (
+        id TEXT PRIMARY KEY,
+        org_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        category TEXT NOT NULL DEFAULT '',
+        content_text TEXT NOT NULL DEFAULT '',
+        created_by_user_id TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        deleted_at TEXT
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_templates_org
+        ON contract_templates (org_id, deleted_at)
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS clause_library (
+        id TEXT PRIMARY KEY,
+        org_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        content_text TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT '',
+        risk_level TEXT,
+        risk_annotation TEXT NOT NULL DEFAULT '',
+        created_by_user_id TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_clauses_org
+        ON clause_library (org_id, category)
+    """,
+)
+
+_V4_REQUIRED_COLUMNS: Final[dict[str, frozenset[str]]] = {
+    "contract_templates": frozenset(
+        {
+            "id",
+            "org_id",
+            "name",
+            "description",
+            "category",
+            "content_text",
+            "created_by_user_id",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+        }
+    ),
+    "clause_library": frozenset(
+        {
+            "id",
+            "org_id",
+            "title",
+            "content_text",
+            "category",
+            "risk_level",
+            "risk_annotation",
+            "created_by_user_id",
+            "created_at",
+            "updated_at",
+        }
+    ),
+}
+
+
+def _validate_v4(connection: sqlite3.Connection) -> None:
+    _validate_v3(connection)
+    _require_columns(connection, _V4_REQUIRED_COLUMNS)
+    template_indexes = {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'index'"
+            " AND tbl_name = 'contract_templates'"
+        )
+    }
+    if "idx_templates_org" not in template_indexes:
+        raise MigrationError("V4 contract-templates org index is missing")
+    clause_indexes = {
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'index' AND tbl_name = 'clause_library'"
+        )
+    }
+    if "idx_clauses_org" not in clause_indexes:
+        raise MigrationError("V4 clause-library org index is missing")
+
+
+def _upgrade_v4(connection: sqlite3.Connection) -> None:
+    _validate_v3(connection)
+    _execute_all(connection, _V4_TABLE_STATEMENTS)
+    _validate_v4(connection)
+
+
 _V1_SIGNATURE = (*_V1_STATEMENTS, "adopt-existing-v1-without-rewrite")
 _V2_SIGNATURE = (
     *_V2_TABLE_STATEMENTS,
@@ -799,6 +898,7 @@ _V2_SIGNATURE = (
     "backfill-organizations-from-v1-tenant-columns",
 )
 _V3_SIGNATURE = (*_V3_TABLE_STATEMENTS, "backfill-completed-review-work-items-by-ordinal")
+_V4_SIGNATURE = (*_V4_TABLE_STATEMENTS, "templates-and-clause-library")
 
 _MIGRATIONS: Final[tuple[_Migration, ...]] = (
     _Migration(
@@ -821,6 +921,13 @@ _MIGRATIONS: Final[tuple[_Migration, ...]] = (
         checksum=_checksum("0003_operational_work_items", _V3_SIGNATURE),
         upgrade=_upgrade_v3,
         validate=_validate_v3,
+    ),
+    _Migration(
+        version=4,
+        name="templates_clause_library",
+        checksum=_checksum("0004_templates_clause_library", _V4_SIGNATURE),
+        upgrade=_upgrade_v4,
+        validate=_validate_v4,
     ),
 )
 

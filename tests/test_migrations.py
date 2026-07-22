@@ -37,12 +37,12 @@ def test_empty_database_upgrades_to_v3_with_operational_work_items(tmp_path: Pat
     after = migration_status(database)
 
     assert before.exists is False
-    assert before.pending_versions == (1, 2, 3)
+    assert before.pending_versions == (1, 2, 3, 4)
     assert result.from_version == 0
-    assert result.to_version == 3
-    assert result.applied_versions == (1, 2, 3)
+    assert result.to_version == 4
+    assert result.applied_versions == (1, 2, 3, 4)
     assert after.is_current
-    assert {item.version for item in after.applied} == {1, 2, 3}
+    assert {item.version for item in after.applied} == {1, 2, 3, 4}
     assert {
         "schema_migrations",
         "reviews",
@@ -55,6 +55,8 @@ def test_empty_database_upgrades_to_v3_with_operational_work_items(tmp_path: Pat
         "finding_actions",
         "work_items",
         "work_item_events",
+        "contract_templates",
+        "clause_library",
     }.issubset(_table_names(database))
     assert {
         "created_by_user_id",
@@ -135,7 +137,7 @@ def test_unversioned_v1_is_adopted_without_losing_rows(tmp_path: Path) -> None:
 
     result = upgrade_database(database)
 
-    assert result.applied_versions == (1, 2, 3)
+    assert result.applied_versions == (1, 2, 3, 4)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         stored_review = connection.execute(
@@ -193,7 +195,7 @@ def test_v3_backfills_completed_report_items_by_ordinal(tmp_path: Path) -> None:
 
     result = upgrade_database(database)
 
-    assert result.applied_versions == (1, 2, 3)
+    assert result.applied_versions == (1, 2, 3, 4)
     with sqlite3.connect(database) as connection:
         connection.row_factory = sqlite3.Row
         rows = connection.execute(
@@ -222,14 +224,14 @@ def test_repeated_upgrade_is_idempotent(tmp_path: Path) -> None:
     first = upgrade_database(database)
     second = upgrade_database(database)
 
-    assert first.applied_versions == (1, 2, 3)
-    assert second.from_version == 3
-    assert second.to_version == 3
+    assert first.applied_versions == (1, 2, 3, 4)
+    assert second.from_version == 4
+    assert second.to_version == 4
     assert second.applied_versions == ()
     assert second.already_current
     with sqlite3.connect(database) as connection:
         count = connection.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0]
-    assert count == 3
+    assert count == 4
 
 
 def test_backup_and_restore_preserve_current_database_as_safety_snapshot(tmp_path: Path) -> None:
@@ -256,8 +258,8 @@ def test_backup_and_restore_preserve_current_database_as_safety_snapshot(tmp_pat
 
     restore_result = restore_database(backup, database)
 
-    assert backup_result.schema_version == 3
-    assert restore_result.schema_version == 3
+    assert backup_result.schema_version == 4
+    assert restore_result.schema_version == 4
     assert restore_result.safety_backup is not None
     assert Path(restore_result.safety_backup).is_file()
     with sqlite3.connect(database) as connection:

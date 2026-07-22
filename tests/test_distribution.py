@@ -9,8 +9,6 @@ import pytest
     ("filename", "expected_fragment"),
     [
         ("index.html", "<!doctype html>"),
-        ("styles.css", ":root"),
-        ("app.js", "document.queryselector"),
     ],
 )
 def test_installed_package_exposes_web_resources(

@@ -211,24 +211,6 @@ def create_app(
         )
         return response
 
-    web_directory = Path(__file__).resolve().parent / "web"
-    if web_directory.is_dir():
-        app.mount(
-            "/ui-assets",
-            StaticFiles(directory=web_directory),
-            name="ui-assets",
-        )
-
-        @app.get("/", include_in_schema=False)
-        async def web_ui() -> FileResponse:
-            response = FileResponse(web_directory / "index.html")
-            response.headers["Content-Security-Policy"] = (
-                "default-src 'self'; script-src 'self'; style-src 'self'; "
-                "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
-                "base-uri 'none'; frame-ancestors 'none'"
-            )
-            return response
-
     if resolved_settings.cors_origins:
         app.add_middleware(
             CORSMiddleware,
@@ -299,6 +281,39 @@ def create_app(
         return {"status": "ready", "dependencies": dependencies}
 
     app.include_router(api_router, prefix=resolved_settings.api_prefix)
+
+    # Vue SPA static serving — registered LAST so catch-all doesn't shadow API routes
+    web_directory = Path(__file__).resolve().parent / "web"
+    if web_directory.is_dir():
+        assets_directory = web_directory / "assets"
+        if assets_directory.is_dir():
+            app.mount(
+                "/assets",
+                StaticFiles(directory=assets_directory),
+                name="assets",
+            )
+
+        _CSP = (
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+            "base-uri 'none'; frame-ancestors 'none'"
+        )
+
+        @app.get("/", include_in_schema=False)
+        async def web_ui() -> FileResponse:
+            response = FileResponse(web_directory / "index.html")
+            response.headers["Content-Security-Policy"] = _CSP
+            return response
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def spa_fallback(full_path: str) -> FileResponse:
+            file_path = web_directory / full_path
+            if full_path and file_path.is_file():
+                return FileResponse(file_path)
+            response = FileResponse(web_directory / "index.html")
+            response.headers["Content-Security-Policy"] = _CSP
+            return response
+
     return app
 
 
