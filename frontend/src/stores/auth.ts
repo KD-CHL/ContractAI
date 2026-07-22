@@ -4,11 +4,22 @@ import type { ChangePasswordRequest, LoginRequest, RegisterRequest, User } from 
 import * as authApi from '@/api/auth'
 import { clearTokens, setTokens } from '@/api/client'
 
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true'
+
+const DEMO_USER: User = {
+  id: 'demo-user',
+  email: 'demo@contractguard.app',
+  display_name: 'Demo 用户',
+  role: 'owner',
+  org_id: 'demo-org',
+  org_name: 'Demo 组织',
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // ─── State ───────────────────────────────────────────────────────────────────
 
-  const user = ref<User | null>(null)
-  const isAuthenticated = ref(false)
+  const user = ref<User | null>(DEMO_MODE ? DEMO_USER : null)
+  const isAuthenticated = ref(DEMO_MODE)
   const isBootstrap = ref(false)
   const loading = ref(false)
 
