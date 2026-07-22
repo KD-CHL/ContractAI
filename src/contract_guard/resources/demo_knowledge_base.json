@@ -1,0 +1,110 @@
+{
+  "schema_version": "1.0",
+  "resource_kind": "demo_contract_review_knowledge",
+  "demo_only": true,
+  "legal_advice": false,
+  "updated_at": "2026-07-15T00:00:00Z",
+  "notice_zh": "本文件全部内容均为合成的内部演示政策，不是法律法规摘录，不构成法律意见。",
+  "entries": [
+    {
+      "id": "CG-DEMO-K001",
+      "knowledge_id": "CG-DEMO-K001",
+      "title": "演示审阅政策：责任边界",
+      "category": "liability",
+      "tags": ["责任", "责任上限", "赔偿", "无限责任"],
+      "content": "责任条款应由审阅者识别责任主体、责任类型、金额边界和除外事项；无限或范围不明的表述升级人工处理。",
+      "source_uri": "demo://contractguard/policies/liability/v1",
+      "version": "1.0.0",
+      "demo_only": true,
+      "jurisdiction": "DEMO-NON-JURISDICTIONAL",
+      "effective_from": "2026-01-01",
+      "summary_zh": "责任条款应由审阅者识别责任主体、责任类型、金额边界和除外事项；无限或范围不明的表述升级人工处理。",
+      "provenance": {
+        "source_type": "synthetic_internal_policy",
+        "source_uri": "demo://contractguard/policies/liability/v1",
+        "source_version": "1.0.0",
+        "retrieved_at": "2026-07-15T00:00:00Z"
+      }
+    },
+    {
+      "id": "CG-DEMO-K002",
+      "knowledge_id": "CG-DEMO-K002",
+      "title": "演示审阅政策：期限与续期",
+      "category": "term_and_termination",
+      "tags": ["期限", "续期", "通知", "自动续期"],
+      "content": "审阅续期条款时记录初始期限、续期期限、提醒责任和退出通知窗口。",
+      "source_uri": "demo://contractguard/policies/renewal/v1",
+      "version": "1.0.0",
+      "demo_only": true,
+      "jurisdiction": "DEMO-NON-JURISDICTIONAL",
+      "effective_from": "2026-01-01",
+      "summary_zh": "审阅续期条款时记录初始期限、续期期限、提醒责任和退出通知窗口。",
+      "provenance": {
+        "source_type": "synthetic_internal_policy",
+        "source_uri": "demo://contractguard/policies/renewal/v1",
+        "source_version": "1.0.0",
+        "retrieved_at": "2026-07-15T00:00:00Z"
+      }
+    },
+    {
+      "id": "CG-DEMO-K003",
+      "knowledge_id": "CG-DEMO-K003",
+      "title": "演示审阅政策：知识产权范围",
+      "category": "intellectual_property",
+      "tags": ["知识产权", "成果", "既有材料", "开源"],
+      "content": "项目成果的权属安排应与既有材料、开源组件、第三方材料和通用技能分别描述。",
+      "source_uri": "demo://contractguard/policies/ip/v1",
+      "version": "1.0.0",
+      "demo_only": true,
+      "jurisdiction": "DEMO-NON-JURISDICTIONAL",
+      "effective_from": "2026-01-01",
+      "summary_zh": "项目成果的权属安排应与既有材料、开源组件、第三方材料和通用技能分别描述。",
+      "provenance": {
+        "source_type": "synthetic_internal_policy",
+        "source_uri": "demo://contractguard/policies/ip/v1",
+        "source_version": "1.0.0",
+        "retrieved_at": "2026-07-15T00:00:00Z"
+      }
+    },
+    {
+      "id": "CG-DEMO-K004",
+      "knowledge_id": "CG-DEMO-K004",
+      "title": "演示审阅政策：数据处理边界",
+      "category": "data_use",
+      "tags": ["数据", "保存期限", "第三方", "安全事件"],
+      "content": "数据条款需由授权人员确认处理目的、数据范围、保存期限、接收方、删除流程和安全事件响应。",
+      "source_uri": "demo://contractguard/policies/data-use/v1",
+      "version": "1.0.0",
+      "demo_only": true,
+      "jurisdiction": "DEMO-NON-JURISDICTIONAL",
+      "effective_from": "2026-01-01",
+      "summary_zh": "数据条款需由授权人员确认处理目的、数据范围、保存期限、接收方、删除流程和安全事件响应。",
+      "provenance": {
+        "source_type": "synthetic_internal_policy",
+        "source_uri": "demo://contractguard/policies/data-use/v1",
+        "source_version": "1.0.0",
+        "retrieved_at": "2026-07-15T00:00:00Z"
+      }
+    },
+    {
+      "id": "CG-DEMO-K005",
+      "knowledge_id": "CG-DEMO-K005",
+      "title": "演示审阅政策：验收与付款",
+      "category": "payment",
+      "tags": ["验收", "付款", "反馈期限", "整改"],
+      "content": "验收条款宜采用可验证的标准并记录反馈期限、整改流程和付款触发条件。",
+      "source_uri": "demo://contractguard/policies/acceptance/v1",
+      "version": "1.0.0",
+      "demo_only": true,
+      "jurisdiction": "DEMO-NON-JURISDICTIONAL",
+      "effective_from": "2026-01-01",
+      "summary_zh": "验收条款宜采用可验证的标准并记录反馈期限、整改流程和付款触发条件。",
+      "provenance": {
+        "source_type": "synthetic_internal_policy",
+        "source_uri": "demo://contractguard/policies/acceptance/v1",
+        "source_version": "1.0.0",
+        "retrieved_at": "2026-07-15T00:00:00Z"
+      }
+    }
+  ]
+}

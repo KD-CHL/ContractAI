@@ -1,0 +1,151 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contractguard-config
+data:
+  APP_MODE: "offline"
+  OPENAI_MODEL: "gpt-5.6-luna"
+  DATABASE_URL: "sqlite:///./data/contractguard.db"
+  LOG_LEVEL: "info"
+  CONTRACT_GUARD_ENV: "production"
+  CONTRACT_GUARD_DOCS_ENABLED: "false"
+  CONTRACT_GUARD_AUTH_REQUIRED: "true"
+  # The first owner can still bootstrap an empty database. Later public
+  # organization registration remains closed.
+  CONTRACT_GUARD_REGISTRATION_ENABLED: "false"
+  CONTRACT_GUARD_AUTH_COOKIE_SECURE: "true"
+  CONTRACT_GUARD_AUTH_ACCESS_TTL_MINUTES: "480"
+  CONTRACT_GUARD_AUTH_REFRESH_TTL_DAYS: "30"
+  CONTRACT_GUARD_LOGIN_ATTEMPT_LIMIT: "10"
+  CONTRACT_GUARD_LOGIN_WINDOW_SECONDS: "300"
+  CONTRACT_GUARD_MAX_UPLOAD_BYTES: "20971520"
+  CONTRACT_GUARD_MAX_DOCUMENT_PAGES: "200"
+  CONTRACT_GUARD_MAX_DOCUMENT_CHARACTERS: "1000000"
+  CONTRACT_GUARD_MAX_DOCX_UNCOMPRESSED_BYTES: "104857600"
+  CONTRACT_GUARD_MAX_OCR_PIXELS: "20000000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contractguard
+  labels:
+    app.kubernetes.io/name: contractguard
+spec:
+  # The repository's built-in storage is SQLite. Keep this baseline at one
+  # replica; horizontal scaling requires a production ReviewRepository adapter.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: contractguard
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: contractguard
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: migrate-database
+          image: registry.example.invalid/contractguard:0.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - /app/scripts/manage_db.py
+            - upgrade
+            - --database
+            - /app/data/contractguard.db
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: runtime-data
+              mountPath: /app/data
+      containers:
+        - name: app
+          image: registry.example.invalid/contractguard:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: contractguard-config
+            - secretRef:
+                name: contractguard-secrets
+                optional: true
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: runtime-data
+              mountPath: /app/data
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: runtime-data
+          persistentVolumeClaim:
+            claimName: contractguard-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: contractguard-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: contractguard
+  labels:
+    app.kubernetes.io/name: contractguard
+spec:
+  selector:
+    app.kubernetes.io/name: contractguard
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  type: ClusterIP

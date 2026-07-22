@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Python and package quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install project and build tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install '.[dev]'
+
+      - name: Lint Python
+        run: python -m ruff check src tests
+
+      - name: Check Python formatting
+        run: python -m ruff format --check src tests
+
+      - name: Type-check Python
+        run: python -m mypy src
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Check browser JavaScript syntax
+        run: node --check src/contract_guard/web/app.js
+
+      - name: Build wheel without build isolation
+        run: python -m pip wheel --no-build-isolation --no-deps --wheel-dir dist .
+
+      - name: Verify wheel contains the web application
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile
+
+          wheels = list(Path("dist").glob("contractguard-*.whl"))
+          if len(wheels) != 1:
+              raise SystemExit(f"expected exactly one ContractGuard wheel, found: {wheels}")
+
+          required = {
+              "contract_guard/resources/demo_knowledge_base.json",
+              "contract_guard/web/index.html",
+              "contract_guard/web/styles.css",
+              "contract_guard/web/app.js",
+          }
+          with ZipFile(wheels[0]) as archive:
+              missing = required.difference(archive.namelist())
+          if missing:
+              raise SystemExit(f"wheel is missing web resources: {sorted(missing)}")
+          print(f"verified {wheels[0].name}: {sorted(required)}")
+          PY
+
+  docker-smoke:
+    name: Docker image smoke build
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build local image on Docker-enabled runner
+        run: docker build --tag contractguard:ci .

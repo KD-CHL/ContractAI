@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0",
+  "resource_kind": "demo_contract_risk_rules",
+  "demo_only": true,
+  "legal_advice": false,
+  "updated_at": "2026-07-15T00:00:00Z",
+  "notice_zh": "以下规则是合成的产品演示数据，不构成法律意见，也不保证完整、准确或适用于任何法域。",
+  "rules": [
+    {
+      "rule_id": "CG-DEMO-R001",
+      "version": "1.0.0",
+      "title": "无限责任表述",
+      "category": "liability",
+      "severity": "high",
+      "risk_level": "high",
+      "pattern": "承担全部责任|无限责任|赔偿一切损失",
+      "description": "条款可能没有清晰的责任范围或金额边界。",
+      "recommendation": "核对责任范围、除外事项、责任上限及双方责任是否对等。",
+      "match": {
+        "type": "keyword_any",
+        "terms": ["承担全部责任", "无限责任", "赔偿一切损失"]
+      },
+      "rationale_zh": "演示政策要求对未设责任边界的条款进行人工复核。",
+      "review_prompt_zh": "核对责任范围、除外事项、责任上限及双方责任是否对等。",
+      "knowledge_refs": ["CG-DEMO-K001"]
+    },
+    {
+      "rule_id": "CG-DEMO-R002",
+      "version": "1.0.0",
+      "title": "单方自动续期",
+      "category": "term_and_termination",
+      "severity": "medium",
+      "risk_level": "medium",
+      "pattern": "自动续期|未书面通知.{0,30}续期",
+      "description": "条款可能在未主动确认时延长双方义务。",
+      "recommendation": "确认续期周期、提醒机制和任一方退出续期的通知期限。",
+      "match": {
+        "type": "keyword_all",
+        "terms": ["自动续期", "未书面通知"]
+      },
+      "rationale_zh": "自动续期可能造成非预期的持续义务，演示政策要求检查通知窗口。",
+      "review_prompt_zh": "确认续期周期、提醒机制和任一方退出续期的通知期限。",
+      "knowledge_refs": ["CG-DEMO-K002"]
+    },
+    {
+      "rule_id": "CG-DEMO-R003",
+      "version": "1.0.0",
+      "title": "成果知识产权完全转让",
+      "category": "intellectual_property",
+      "severity": "high",
+      "risk_level": "high",
+      "pattern": "全部知识产权归甲方|无偿永久转让|不可撤销地转让",
+      "description": "知识产权转让范围可能覆盖既有材料或第三方组件。",
+      "recommendation": "区分背景知识产权、定制成果、第三方材料和后续使用许可。",
+      "match": {
+        "type": "keyword_any",
+        "terms": ["全部知识产权归甲方", "无偿永久转让", "不可撤销地转让"]
+      },
+      "rationale_zh": "演示政策区分项目成果、既有材料和通用能力，避免范围不明。",
+      "review_prompt_zh": "区分背景知识产权、定制成果、第三方材料和后续使用许可。",
+      "knowledge_refs": ["CG-DEMO-K003"]
+    },
+    {
+      "rule_id": "CG-DEMO-R004",
+      "version": "1.0.0",
+      "title": "数据用途缺少边界",
+      "category": "data_use",
+      "severity": "high",
+      "risk_level": "high",
+      "pattern": "可用于任何目的|永久保存数据|向任意第三方提供",
+      "description": "数据用途、保存期限或接收方范围可能不明确。",
+      "recommendation": "明确数据类型、处理目的、保存期限、接收方、删除和安全事件通知。",
+      "match": {
+        "type": "keyword_any",
+        "terms": ["可用于任何目的", "永久保存数据", "向任意第三方提供"]
+      },
+      "rationale_zh": "用途、保存期限或第三方范围不明确时，需要由隐私与安全负责人复核。",
+      "review_prompt_zh": "明确数据类型、处理目的、保存期限、接收方、删除和安全事件通知。",
+      "knowledge_refs": ["CG-DEMO-K004"]
+    },
+    {
+      "rule_id": "CG-DEMO-R005",
+      "version": "1.0.0",
+      "title": "验收与付款条件单方决定",
+      "category": "payment",
+      "severity": "medium",
+      "risk_level": "medium",
+      "pattern": "以甲方最终满意为准|甲方有权无限期延迟付款|甲方单方认定验收",
+      "description": "验收或付款触发条件可能缺少客观标准和时间边界。",
+      "recommendation": "补充验收标准、反馈期限、视为验收条件、整改次数和付款节点。",
+      "match": {
+        "type": "keyword_any",
+        "terms": ["以甲方最终满意为准", "甲方有权无限期延迟付款", "甲方单方认定验收"]
+      },
+      "rationale_zh": "演示政策要求验收标准可客观验证，并对反馈和整改周期作出约定。",
+      "review_prompt_zh": "补充验收标准、反馈期限、视为验收条件、整改次数和付款节点。",
+      "knowledge_refs": ["CG-DEMO-K005"]
+    }
+  ]
+}

@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="ContractGuard 合同审阅工作台：提交合同、追踪审阅记录并核对原文证据。"
+    />
+    <title>ContractGuard · 合同审阅工作台</title>
+    <link rel="stylesheet" href="ui-assets/styles.css" />
+    <script src="ui-assets/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要内容</a>
+
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+    <main class="auth-page" id="auth-view" hidden>
+      <section class="auth-brand-panel" aria-labelledby="auth-brand-title">
+        <a class="brand brand-on-dark" href="/" aria-label="ContractGuard 首页">
+          <span class="brand-mark" aria-hidden="true">CG</span>
+          <span>
+            <strong>ContractGuard</strong>
+            <small>合同审阅工作台</small>
+          </span>
+        </a>
+        <div class="auth-brand-copy">
+          <p class="eyebrow eyebrow-light">证据可追溯</p>
+          <h1 id="auth-brand-title">让每一次合同审阅都有记录、有依据、能继续。</h1>
+          <p>集中查看合同风险、原文证据、修改建议和待履行义务。</p>
+        </div>
+        <p class="auth-legal-note">系统用于辅助定位问题，不替代律师或法务人员的正式意见。</p>
+      </section>
+
+      <section class="auth-form-panel" aria-labelledby="auth-title">
+        <div class="auth-form-wrap">
+          <div class="service-pill" id="auth-service-state" role="status">
+            <span class="state-dot" aria-hidden="true"></span>
+            <span id="auth-service-text">正在连接服务</span>
+          </div>
+
+          <div id="auth-loading" class="loading-state compact-loading">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在确认登录状态……</span>
+          </div>
+
+          <div id="auth-content" hidden>
+            <div class="auth-heading">
+              <p class="eyebrow" id="auth-eyebrow">欢迎回来</p>
+              <h2 id="auth-title">登录 ContractGuard</h2>
+              <p id="auth-description">使用你的工作账号继续审阅。</p>
+            </div>
+
+            <div class="form-error" id="auth-error" role="alert" hidden></div>
+
+            <form id="login-form" novalidate>
+              <div class="field-group">
+                <label for="login-email">邮箱</label>
+                <input
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  inputmode="email"
+                  required
+                />
+              </div>
+              <div class="field-group">
+                <label for="login-password">密码</label>
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+              </div>
+              <button class="button button-primary button-block" type="submit">登录</button>
+            </form>
+
+            <form id="register-form" novalidate hidden>
+              <div class="field-group" id="organization-field">
+                <label for="register-organization">组织名称</label>
+                <input
+                  id="register-organization"
+                  name="organization_name"
+                  type="text"
+                  autocomplete="organization"
+                  maxlength="120"
+                  required
+                />
+              </div>
+              <div class="field-group">
+                <label for="register-name">你的姓名</label>
+                <input
+                  id="register-name"
+                  name="display_name"
+                  type="text"
+                  autocomplete="name"
+                  maxlength="80"
+                  required
+                />
+              </div>
+              <div class="field-group">
+                <label for="register-email">邮箱</label>
+                <input
+                  id="register-email"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  inputmode="email"
+                  maxlength="254"
+                  required
+                />
+              </div>
+              <div class="field-group">
+                <label for="register-password">设置密码</label>
+                <input
+                  id="register-password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="12"
+                  maxlength="256"
+                  required
+                />
+                <small>至少 12 个字符；小写字母、大写字母、数字、符号四类中至少包含三类。</small>
+              </div>
+              <button class="button button-primary button-block" type="submit">创建账号并进入</button>
+            </form>
+
+            <button class="auth-switch" id="auth-switch" type="button" hidden></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="app-shell" id="app-view" hidden>
+      <aside class="sidebar" aria-label="主导航">
+        <a class="brand" href="#dashboard" aria-label="ContractGuard 工作台">
+          <span class="brand-mark" aria-hidden="true">CG</span>
+          <span>
+            <strong>ContractGuard</strong>
+            <small>合同审阅工作台</small>
+          </span>
+        </a>
+
+        <nav class="side-nav">
+          <a href="#dashboard" data-route-link="dashboard">工作台</a>
+          <a href="#work" data-route-link="work">处置中心</a>
+          <a href="#reviews" data-route-link="reviews">审阅记录</a>
+          <a href="#new" data-route-link="new" data-review-create>新建审阅</a>
+          <a href="#account" data-route-link="account">账户</a>
+          <a href="#admin" data-route-link="admin" data-admin-only hidden>成员与日志</a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="signed-in-user">
+            <span class="user-avatar" id="user-avatar" aria-hidden="true">用</span>
+            <span>
+              <strong id="sidebar-user-name">当前用户</strong>
+              <small id="sidebar-user-email"></small>
+            </span>
+          </div>
+          <button class="button button-quiet button-block" id="logout-button" type="button">退出登录</button>
+        </div>
+      </aside>
+
+      <header class="mobile-header">
+        <a class="brand" href="#dashboard" aria-label="ContractGuard 工作台">
+          <span class="brand-mark" aria-hidden="true">CG</span>
+          <strong>ContractGuard</strong>
+        </a>
+        <button class="button button-quiet" id="mobile-logout-button" type="button">退出</button>
+      </header>
+
+      <main class="workspace" id="main-content" tabindex="-1">
+        <section class="view" id="dashboard-view" data-view="dashboard" aria-labelledby="dashboard-title" hidden>
+          <header class="page-header page-header-actions">
+            <div>
+              <p class="eyebrow">工作台</p>
+              <h1 id="dashboard-title">合同审阅概览</h1>
+              <p id="dashboard-welcome">查看当前组织的审阅进展和近期记录。</p>
+            </div>
+            <a class="button button-primary" href="#new" data-review-create>新建审阅</a>
+          </header>
+
+          <div class="view-error" id="dashboard-error" role="alert" hidden></div>
+          <div class="loading-state" id="dashboard-loading">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在加载工作台……</span>
+          </div>
+
+          <div id="dashboard-content" hidden>
+            <section class="operations-summary" aria-labelledby="operations-summary-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">运营摘要</p>
+                  <h2 id="operations-summary-title">需要团队继续推进</h2>
+                </div>
+                <a class="button button-secondary" href="#work">打开处置中心</a>
+              </div>
+              <div class="view-error" id="operations-summary-error" role="alert" hidden></div>
+              <div class="loading-state compact-loading" id="operations-summary-loading">
+                <span class="spinner" aria-hidden="true"></span>
+                <span>正在加载处置摘要……</span>
+              </div>
+              <div class="metric-grid operations-metric-grid" id="operations-summary-content" aria-label="处置运营统计" hidden>
+                <article class="metric-card">
+                  <span>我的未完成</span>
+                  <strong id="operation-my-open">0</strong>
+                  <small>当前分配给我</small>
+                </article>
+                <article class="metric-card metric-danger">
+                  <span>已经逾期</span>
+                  <strong id="operation-overdue">0</strong>
+                  <small>需要尽快处理</small>
+                </article>
+                <article class="metric-card metric-warning">
+                  <span>高风险未关闭</span>
+                  <strong id="operation-high-risk-open">0</strong>
+                  <small>尚未解决或接受</small>
+                </article>
+                <article class="metric-card">
+                  <span>待审批</span>
+                  <strong id="operation-pending-approvals">0</strong>
+                  <small>等待最终决定</small>
+                </article>
+                <article class="metric-card metric-success">
+                  <span>本周完成</span>
+                  <strong id="operation-completed-week">0</strong>
+                  <small>已形成处置结果</small>
+                </article>
+              </div>
+            </section>
+
+            <div id="review-summary-content" hidden>
+              <div class="metric-grid" aria-label="审阅统计">
+              <article class="metric-card">
+                <span>全部审阅</span>
+                <strong id="metric-total">0</strong>
+                <small>当前组织累计</small>
+              </article>
+              <article class="metric-card">
+                <span>已完成</span>
+                <strong id="metric-completed">0</strong>
+                <small>已有审阅结果</small>
+              </article>
+              <article class="metric-card metric-warning">
+                <span>含高风险</span>
+                <strong id="metric-high-risk">0</strong>
+                <small>建议优先复核</small>
+              </article>
+              <article class="metric-card metric-danger">
+                <span>失败</span>
+                <strong id="metric-failed">0</strong>
+                <small>需要重新处理</small>
+              </article>
+              </div>
+
+              <section class="content-card" aria-labelledby="recent-title">
+                <div class="section-header">
+                  <div>
+                    <p class="eyebrow">最近更新</p>
+                    <h2 id="recent-title">近期审阅</h2>
+                  </div>
+                  <a class="button button-secondary" href="#reviews">查看全部</a>
+                </div>
+                <div class="record-list" id="recent-review-list"></div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="work-view" data-view="work" aria-labelledby="work-title" hidden>
+          <header class="page-header page-header-actions">
+            <div>
+              <p class="eyebrow">处置中心</p>
+              <h1 id="work-title">推进风险与合同义务</h1>
+              <p>按负责人、状态和截止时间找到下一步工作；点击合同名称可回到完整审阅。</p>
+            </div>
+            <a class="button button-secondary" href="#reviews">查看审阅记录</a>
+          </header>
+
+          <form class="filter-bar work-filter-bar" id="work-filter-form" role="search">
+            <div class="field-group">
+              <label for="work-kind">工作类型</label>
+              <select id="work-kind">
+                <option value="">全部类型</option>
+                <option value="finding">风险处置</option>
+                <option value="obligation">合同义务</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="work-status">处置状态</label>
+              <select id="work-status">
+                <option value="">全部状态</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="work-assignee">负责人</label>
+              <select id="work-assignee">
+                <option value="">全部负责人</option>
+                <option value="me">由我负责</option>
+                <option value="unassigned">尚未指派</option>
+              </select>
+            </div>
+            <label class="check-field" for="work-overdue">
+              <input id="work-overdue" type="checkbox" />
+              <span>仅看逾期</span>
+            </label>
+            <button class="button button-secondary" type="submit">筛选</button>
+            <button class="button button-quiet" id="clear-work-filters" type="button">清除</button>
+          </form>
+
+          <div class="view-error" id="work-error" role="alert" hidden></div>
+          <div class="loading-state" id="work-loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在加载处置工作项……</span>
+          </div>
+          <p class="list-summary" id="work-result-summary" aria-live="polite"></p>
+          <div class="work-item-list" id="work-item-list"></div>
+          <nav class="pagination" id="work-pagination" aria-label="处置工作项分页" hidden>
+            <button class="button button-secondary" id="work-previous-page" type="button">上一页</button>
+            <span id="work-page-status" aria-live="polite">第 1 页</span>
+            <button class="button button-secondary" id="work-next-page" type="button">下一页</button>
+          </nav>
+        </section>
+
+        <section class="view" id="reviews-view" data-view="reviews" aria-labelledby="reviews-title" hidden>
+          <header class="page-header page-header-actions">
+            <div>
+              <p class="eyebrow">审阅记录</p>
+              <h1 id="reviews-title">查找和管理合同审阅</h1>
+              <p>已删除的记录可通过筛选查看并恢复。</p>
+            </div>
+            <a class="button button-primary" href="#new" data-review-create>新建审阅</a>
+          </header>
+
+          <form class="filter-bar" id="review-filter-form" role="search">
+            <div class="field-group filter-search">
+              <label for="review-search">关键词</label>
+              <input id="review-search" type="search" placeholder="合同编号或文件名" autocomplete="off" />
+            </div>
+            <div class="field-group filter-status">
+              <label for="review-status">状态</label>
+              <select id="review-status">
+                <option value="">全部状态</option>
+                <option value="processing">处理中</option>
+                <option value="completed">已完成</option>
+                <option value="failed">失败</option>
+              </select>
+            </div>
+            <label class="check-field" for="include-deleted">
+              <input id="include-deleted" type="checkbox" />
+              <span>包含已删除记录</span>
+            </label>
+            <button class="button button-secondary" type="submit">查询</button>
+            <button class="button button-quiet" id="clear-review-filters" type="button">清除</button>
+          </form>
+
+          <div class="view-error" id="reviews-error" role="alert" hidden></div>
+          <div class="loading-state" id="reviews-loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在加载审阅记录……</span>
+          </div>
+          <div class="record-list record-list-bordered" id="review-list"></div>
+          <nav class="pagination" id="review-pagination" aria-label="审阅记录分页" hidden>
+            <button class="button button-secondary" id="previous-page" type="button">上一页</button>
+            <span id="page-status" aria-live="polite">第 1 页</span>
+            <button class="button button-secondary" id="next-page" type="button">下一页</button>
+          </nav>
+        </section>
+
+        <section class="view" id="new-view" data-view="new" aria-labelledby="new-title" hidden>
+          <header class="page-header">
+            <p class="eyebrow">新建审阅</p>
+            <h1 id="new-title">提交一份需要审阅的合同</h1>
+            <p>选择粘贴文字或上传文件，结果完成后会进入审阅记录。</p>
+          </header>
+
+          <div class="data-notice" role="note">
+            <strong>保存说明</strong>
+            <span>当前服务端只保存文件名与指纹、报告所需的证据片段、审阅报告和反馈；不会保存原始文件或抽取全文。删除后的记录会先进入回收站，仍可恢复；合同不会写入浏览器本地存储。</span>
+          </div>
+
+          <section class="content-card review-input-card" aria-labelledby="input-title">
+            <div class="section-header">
+              <div>
+                <p class="eyebrow">合同来源</p>
+                <h2 id="input-title">放入合同内容</h2>
+              </div>
+              <button class="button button-secondary" id="sample-button" type="button">使用示例合同</button>
+            </div>
+
+            <div class="input-tabs" role="tablist" aria-label="选择合同输入方式">
+              <button
+                id="text-tab"
+                class="input-tab is-active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="text-panel"
+                data-mode="text"
+              >粘贴合同</button>
+              <button
+                id="file-tab"
+                class="input-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="file-panel"
+                data-mode="file"
+                tabindex="-1"
+              >上传文件</button>
+            </div>
+
+            <div id="text-panel" class="input-panel" role="tabpanel" aria-labelledby="text-tab">
+              <div class="field-group">
+                <label for="contract-text">合同内容</label>
+                <textarea id="contract-text" rows="14" placeholder="在这里粘贴完整合同内容……" spellcheck="false"></textarea>
+                <div class="field-meta">
+                  <span>请勿在合同中添加与审阅无关的个人敏感信息</span>
+                  <span id="character-count">0 字</span>
+                </div>
+              </div>
+            </div>
+
+            <div id="file-panel" class="input-panel" role="tabpanel" aria-labelledby="file-tab" hidden>
+              <div class="drop-zone" id="drop-zone">
+                <input
+                  id="contract-file"
+                  class="visually-hidden"
+                  type="file"
+                  accept=".pdf,.docx,.txt,.md,.markdown,.png,.jpg,.jpeg,.webp,.gif"
+                />
+                <strong>把合同拖到这里，或从电脑中选择</strong>
+                <button class="button button-secondary" id="choose-file-button" type="button">选择合同文件</button>
+                <small id="file-limit-label">支持 PDF、Word、TXT、Markdown，最大 20 MB</small>
+              </div>
+              <div class="selected-file" id="selected-file" role="status" aria-live="polite" hidden>
+                <span class="selected-file-copy">
+                  <strong id="selected-file-name"></strong>
+                  <small id="selected-file-size"></small>
+                </span>
+                <button class="button button-quiet" id="remove-file-button" type="button">重新选择</button>
+              </div>
+            </div>
+
+            <details class="advanced-options">
+              <summary>可选：填写合同编号</summary>
+              <div class="advanced-body field-group">
+                <label for="contract-id">合同编号</label>
+                <input id="contract-id" type="text" maxlength="256" placeholder="例如：SAAS-2026-001" autocomplete="off" />
+              </div>
+            </details>
+
+            <div class="form-error" id="review-error" role="alert" hidden></div>
+            <div class="request-wait" id="review-wait" role="status" aria-live="polite" hidden>
+              <span class="spinner" aria-hidden="true"></span>
+              <span>
+                <strong>正在等待服务返回审阅结果</strong>
+                <small>长合同可能需要更久。当前页面会在服务返回后自动打开结果。</small>
+              </span>
+            </div>
+
+            <div class="submit-row">
+              <p>提交即表示你有权处理该合同内容，并了解系统输出仍需人工复核。</p>
+              <button class="button button-primary" id="review-button" type="button">开始审阅</button>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="account-view" data-view="account" aria-labelledby="account-title" hidden>
+          <header class="page-header page-header-actions">
+            <div>
+              <p class="eyebrow">账户</p>
+              <h1 id="account-title">账户与安全</h1>
+              <p>查看当前身份并定期更新登录密码。</p>
+            </div>
+            <a class="button button-secondary" href="#admin" data-admin-only hidden>成员与日志</a>
+          </header>
+
+          <div class="settings-grid">
+            <section class="content-card" aria-labelledby="profile-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">当前身份</p>
+                  <h2 id="profile-title">账户信息</h2>
+                </div>
+              </div>
+              <dl class="account-details">
+                <div>
+                  <dt>姓名</dt>
+                  <dd id="account-name">—</dd>
+                </div>
+                <div>
+                  <dt>邮箱</dt>
+                  <dd id="account-email">—</dd>
+                </div>
+                <div>
+                  <dt>组织</dt>
+                  <dd id="account-organization">—</dd>
+                </div>
+                <div>
+                  <dt>角色</dt>
+                  <dd>
+                    <span id="account-role">—</span>
+                    <small class="account-helper" id="account-role-description"></small>
+                  </dd>
+                </div>
+                <div>
+                  <dt>状态</dt>
+                  <dd id="account-status">—</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="content-card" aria-labelledby="password-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">登录安全</p>
+                  <h2 id="password-title">修改密码</h2>
+                </div>
+              </div>
+              <p class="section-copy">密码修改成功后，所有当前会话都会失效，你需要重新登录。</p>
+              <div class="form-error" id="password-error" role="alert" hidden></div>
+              <div class="form-success" id="password-success" role="status" hidden></div>
+              <form id="change-password-form" novalidate>
+                <div class="field-group">
+                  <label for="current-password">当前密码</label>
+                  <input
+                    id="current-password"
+                    name="current_password"
+                    type="password"
+                    autocomplete="current-password"
+                    maxlength="256"
+                    required
+                  />
+                </div>
+                <div class="field-group">
+                  <label for="new-password">新密码</label>
+                  <input
+                    id="new-password"
+                    name="new_password"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="12"
+                    maxlength="256"
+                    aria-describedby="new-password-help"
+                    required
+                  />
+                  <small id="new-password-help">至少 12 个字符；小写字母、大写字母、数字、符号四类中至少包含三类。</small>
+                </div>
+                <div class="field-group">
+                  <label for="confirm-password">再次输入新密码</label>
+                  <input
+                    id="confirm-password"
+                    name="confirm_password"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="12"
+                    maxlength="256"
+                    required
+                  />
+                </div>
+                <button class="button button-primary" type="submit">更新密码</button>
+              </form>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="admin-view" data-view="admin" aria-labelledby="admin-title" hidden>
+          <header class="page-header">
+            <p class="eyebrow">组织管理</p>
+            <h1 id="admin-title">成员与日志</h1>
+            <p>管理当前组织成员，并查看最近的关键操作记录。</p>
+          </header>
+
+          <div class="view-error" id="admin-access-error" role="alert" hidden></div>
+          <div id="admin-content">
+            <section class="content-card" aria-labelledby="create-member-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">新增成员</p>
+                  <h2 id="create-member-title">创建工作账号</h2>
+                </div>
+              </div>
+              <p class="section-copy">请通过安全渠道把初始密码交给成员，并提醒对方首次登录后修改密码。</p>
+              <div class="form-error" id="member-create-error" role="alert" hidden></div>
+              <div class="form-success" id="member-create-success" role="status" hidden></div>
+              <form class="member-create-form" id="member-create-form" novalidate>
+                <div class="field-group">
+                  <label for="member-name">姓名</label>
+                  <input id="member-name" name="display_name" type="text" autocomplete="off" minlength="2" maxlength="80" required />
+                </div>
+                <div class="field-group">
+                  <label for="member-email">邮箱</label>
+                  <input id="member-email" name="email" type="email" inputmode="email" autocomplete="off" maxlength="254" required />
+                </div>
+                <div class="field-group">
+                  <label for="member-password">初始密码</label>
+                  <input
+                    id="member-password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="12"
+                    maxlength="256"
+                    aria-describedby="member-password-help"
+                    required
+                  />
+                  <small id="member-password-help">至少 12 个字符；小写字母、大写字母、数字、符号四类中至少包含三类。</small>
+                </div>
+                <div class="field-group">
+                  <label for="member-role">角色</label>
+                  <select id="member-role" name="role">
+                    <option value="reviewer">审阅人</option>
+                    <option value="viewer">只读成员</option>
+                    <option value="admin">管理员</option>
+                  </select>
+                </div>
+                <button class="button button-primary" type="submit">创建成员</button>
+              </form>
+            </section>
+
+            <section class="content-card admin-section" aria-labelledby="members-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">权限与状态</p>
+                  <h2 id="members-title">组织成员</h2>
+                </div>
+                <button class="button button-secondary" id="refresh-members" type="button">刷新成员</button>
+              </div>
+              <div class="view-error" id="members-error" role="alert" hidden></div>
+              <div class="loading-state" id="members-loading" hidden>
+                <span class="spinner" aria-hidden="true"></span>
+                <span>正在加载组织成员……</span>
+              </div>
+              <div class="member-list" id="member-list"></div>
+            </section>
+
+            <section class="content-card admin-section" aria-labelledby="audit-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">最近操作</p>
+                  <h2 id="audit-title">审计日志</h2>
+                </div>
+                <button class="button button-secondary" id="refresh-audit" type="button">刷新日志</button>
+              </div>
+              <div class="view-error" id="audit-error" role="alert" hidden></div>
+              <div class="loading-state" id="audit-loading" hidden>
+                <span class="spinner" aria-hidden="true"></span>
+                <span>正在加载操作记录……</span>
+              </div>
+              <div class="audit-list" id="audit-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="detail-view" data-view="detail" aria-labelledby="detail-title" hidden>
+          <a class="back-link" href="#reviews">返回审阅记录</a>
+          <div class="view-error" id="detail-error" role="alert" hidden></div>
+          <div class="loading-state" id="detail-loading">
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在加载审阅详情……</span>
+          </div>
+          <div id="detail-content" hidden>
+            <header class="page-header page-header-actions detail-header">
+              <div>
+                <div class="detail-heading-line">
+                  <span class="status-badge" id="detail-status">状态</span>
+                  <span class="decision-badge" id="detail-decision-status">待处置</span>
+                  <span class="deleted-badge" id="detail-deleted-badge" hidden>已删除</span>
+                </div>
+                <h1 id="detail-title">审阅详情</h1>
+                <p id="detail-meta"></p>
+              </div>
+              <div class="detail-actions">
+                <a class="button button-secondary" id="export-button" href="#" target="_blank" rel="noopener">导出 HTML 报告</a>
+                <button class="button button-danger" id="delete-review-button" type="button">删除记录</button>
+                <button class="button button-secondary" id="restore-review-button" type="button" hidden>恢复记录</button>
+              </div>
+            </header>
+
+            <div class="mode-notice" id="mode-notice"></div>
+
+            <section class="content-card approval-card" aria-labelledby="approval-title">
+              <div class="section-header approval-header">
+                <div>
+                  <p class="eyebrow">业务审批</p>
+                  <h2 id="approval-title">审阅决定</h2>
+                </div>
+                <span class="decision-badge" id="approval-status">草稿</span>
+              </div>
+              <p class="approval-description" id="approval-description"></p>
+              <div class="view-error" id="decision-error" role="alert" hidden></div>
+              <div class="form-success" id="decision-success" role="status" hidden></div>
+              <form class="decision-form" id="decision-form" novalidate>
+                <div class="field-group">
+                  <label for="decision-target">下一步状态</label>
+                  <select id="decision-target" required></select>
+                </div>
+                <div class="field-group decision-note-field">
+                  <label for="decision-note">审批说明</label>
+                  <textarea id="decision-note" rows="3" maxlength="5000" placeholder="驳回时必须说明原因；其他状态可选填"></textarea>
+                </div>
+                <button class="button button-primary" id="decision-submit" type="submit">更新审批状态</button>
+              </form>
+              <p class="read-only-notice" id="decision-read-only" hidden>当前账号可以查看审批状态，但不能修改最终决定。</p>
+            </section>
+
+            <div class="metric-grid result-metrics" aria-label="审阅结果摘要">
+              <article class="metric-card">
+                <span>风险提示</span>
+                <strong id="summary-findings">0</strong>
+                <small id="summary-highest">暂无等级</small>
+              </article>
+              <article class="metric-card metric-warning">
+                <span>高风险项目</span>
+                <strong id="summary-high-risk">0</strong>
+                <small>建议优先处理</small>
+              </article>
+              <article class="metric-card">
+                <span>待履行义务</span>
+                <strong id="summary-obligations">0</strong>
+                <small>已从原文提取</small>
+              </article>
+              <article class="metric-card">
+                <span>原文证据覆盖</span>
+                <strong id="summary-coverage">0%</strong>
+                <small>结论可回溯程度</small>
+              </article>
+            </div>
+
+            <div class="view-error detail-work-error" id="detail-work-error" role="alert" hidden></div>
+
+            <section class="content-card result-section" aria-labelledby="findings-title">
+              <div class="section-header section-header-wrap">
+                <div>
+                  <p class="eyebrow">逐项核对</p>
+                  <h2 id="findings-title">风险、证据与建议</h2>
+                  <small class="section-status" id="findings-work-summary"></small>
+                </div>
+                <div class="risk-filters" id="risk-filters" aria-label="按风险等级筛选">
+                  <button type="button" data-risk="all" aria-pressed="true">全部</button>
+                  <button type="button" data-risk="critical">严重</button>
+                  <button type="button" data-risk="high">高</button>
+                  <button type="button" data-risk="medium">中</button>
+                  <button type="button" data-risk="low">低</button>
+                </div>
+              </div>
+              <p class="visually-hidden" id="risk-result-status" aria-live="polite"></p>
+              <div class="finding-list" id="finding-list"></div>
+            </section>
+
+            <section class="content-card result-section" aria-labelledby="obligations-title">
+              <div class="section-header">
+                <div>
+                  <p class="eyebrow">履行提醒</p>
+                  <h2 id="obligations-title">合同义务清单</h2>
+                  <small class="section-status" id="obligations-work-summary"></small>
+                </div>
+              </div>
+              <div class="obligation-list" id="obligation-list"></div>
+            </section>
+
+            <details class="content-card evidence-drawer" id="context-drawer">
+              <summary>
+                <span>
+                  <strong>查看审阅依据与质量说明</strong>
+                  <small>知识来源、历史偏好和证据校验情况</small>
+                </span>
+                <span id="context-count">0 条</span>
+              </summary>
+              <div class="context-list" id="context-list"></div>
+              <div class="quality-panel" id="quality-panel"></div>
+            </details>
+
+            <div class="legal-notice" id="legal-notice">本结果仅用于辅助定位合同问题，不构成法律意见。</div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="mobile-nav" aria-label="移动端主导航">
+        <a href="#dashboard" data-route-link="dashboard">工作台</a>
+        <a href="#work" data-route-link="work">处置中心</a>
+        <a href="#reviews" data-route-link="reviews">审阅记录</a>
+        <a href="#new" data-route-link="new" data-review-create>新建审阅</a>
+        <a href="#account" data-route-link="account">账户</a>
+      </nav>
+    </div>
+
+    <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+      <form method="dialog">
+        <h2 id="confirm-title">请确认操作</h2>
+        <p id="confirm-message"></p>
+        <div class="dialog-actions">
+          <button class="button button-secondary" value="cancel">取消</button>
+          <button class="button button-danger" id="confirm-action" value="confirm">确认</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="work-item-dialog" id="work-item-dialog" aria-labelledby="work-item-dialog-title" aria-describedby="work-item-dialog-context">
+      <form id="work-item-form" novalidate>
+        <header class="work-item-dialog-header">
+          <div>
+            <p class="eyebrow" id="work-item-dialog-kind">工作项</p>
+            <h2 id="work-item-dialog-title">编辑工作项</h2>
+            <p id="work-item-dialog-context"></p>
+          </div>
+          <button class="button button-quiet dialog-close" id="work-item-close" type="button" aria-label="关闭工作项窗口">关闭</button>
+        </header>
+
+        <div class="view-error" id="work-item-dialog-error" role="alert" hidden></div>
+        <div class="form-success" id="work-item-dialog-success" role="status" hidden></div>
+        <p class="read-only-notice" id="work-item-read-only" hidden>当前账号只能查看处置状态与事件记录。</p>
+
+        <div class="work-item-form-grid">
+          <div class="field-group">
+            <label for="work-item-status-field">处置状态</label>
+            <select id="work-item-status-field" required></select>
+          </div>
+          <div class="field-group">
+            <label for="work-item-assignee-field">负责人</label>
+            <select id="work-item-assignee-field"></select>
+          </div>
+          <div class="field-group work-item-due-field">
+            <label for="work-item-due-field">明确截止时间</label>
+            <input id="work-item-due-field" type="datetime-local" aria-describedby="work-item-timezone-help" />
+            <small id="work-item-timezone-help">按当前设备时区保存为明确时间点。</small>
+          </div>
+          <div class="field-group work-item-note-field">
+            <label for="work-item-note-field">处置备注</label>
+            <textarea id="work-item-note-field" rows="4" maxlength="5000" placeholder="记录判断依据、交接信息或完成说明"></textarea>
+            <small>解决风险、接受风险或豁免义务时必须填写说明。</small>
+          </div>
+        </div>
+
+        <section class="work-item-events" aria-labelledby="work-item-events-title">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">事件时间线</p>
+              <h3 id="work-item-events-title">最近变更</h3>
+            </div>
+          </div>
+          <div class="loading-state compact-loading" id="work-item-events-loading" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span>正在加载事件记录……</span>
+          </div>
+          <div class="view-error" id="work-item-events-error" role="alert" hidden></div>
+          <div class="work-event-list" id="work-item-event-list"></div>
+        </section>
+
+        <div class="dialog-actions">
+          <button class="button button-secondary" id="work-item-cancel" type="button">关闭</button>
+          <button class="button button-primary" id="work-item-save" type="submit">保存变更</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>
