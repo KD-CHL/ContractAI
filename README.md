@@ -1,3 +1,14 @@
+---
+title: ContractGuard
+emoji: 📄
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+license: other
+---
+
 # ContractGuard
 
 **AI 驱动的合同风险审阅与处置工作台**
